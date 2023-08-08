@@ -12,7 +12,7 @@ import (
 var chatConnMap = sync.Map{}
 
 func RunMessageServer() {
-	listen, err := net.Listen("tcp", "127.0.0.1:9090")
+	listen, err := net.Listen("tcp", "127.0.0.1:9090") //TODO:为什么要监听9090？
 	if err != nil {
 		fmt.Printf("Run message sever failed: %v\n", err)
 		return
@@ -22,7 +22,7 @@ func RunMessageServer() {
 		conn, err := listen.Accept()
 		if err != nil {
 			fmt.Printf("Accept conn failed: %v\n", err)
-			continue
+			continue //一直尝试连接
 		}
 
 		go process(conn)
