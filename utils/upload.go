@@ -32,6 +32,6 @@ func UploadToQiNiu(file multipart.File, finalname string, fileSize int64) (int, 
 		code := 0
 		return code, err.Error()
 	}
-	url := ImgUrl + ret.Key
+	url := "http://" + ImgUrl + ret.Key
 	return 200, url
 }

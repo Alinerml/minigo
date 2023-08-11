@@ -38,29 +38,37 @@ type UserResponse struct {
 func Register(c *gin.Context) {
 	username := c.Query("username")
 	password := c.Query("password")
+	if username == "" || password == "" {
+		c.JSON(http.StatusOK, UserLoginResponse{
+			Response: Response{StatusCode: 1},
+		})
+		return
+	}
+
 	//密码加密存储
 	password = utils.Encode(password)
 	user := &dao.User{
-		UserName:   username,
+		Name:       username,
 		Password:   password,
-		CreateTime: time.Now(),
+		CreateTime: time.Now().Unix(),
 	}
 	err := dao.SaveUser(user)
 	if err != nil {
 		c.JSON(http.StatusOK, UserLoginResponse{
-			Response: Response{StatusCode: 1},
+			Response: Response{StatusCode: 1, StatusMsg: err.Error()},
 		})
+		return
 	} else {
-		token, err := utils.GenerateJWTToken(strconv.FormatInt(user.ID, 10))
+		token, err := utils.GenerateJWTToken(user.Id)
 		if err != nil {
 			c.JSON(http.StatusOK, UserLoginResponse{
-				Response: Response{StatusCode: 1},
+				Response: Response{StatusCode: 1, StatusMsg: err.Error()},
 			})
 			return
 		}
 		c.JSON(http.StatusOK, UserLoginResponse{
 			Response: Response{StatusCode: 0},
-			UserId:   user.ID,
+			UserId:   user.Id,
 			Token:    token,
 		})
 	}
@@ -90,19 +98,19 @@ func Login(c *gin.Context) {
 	username := c.Query("username")
 	password := c.Query("password")
 
-	user_id, err_message := dao.UserLogin(username, password)
+	user_id, err_message, err := dao.UserLogin(username, password)
 	//查username
 
 	//判断password是否相等
 	if err_message == -1 || err_message == 0 { //用户不存在
 		c.JSON(http.StatusOK, UserLoginResponse{
-			Response: Response{StatusCode: 1},
+			Response: Response{StatusCode: 1, StatusMsg: err.Error()},
 		})
 	} else {
-		token, err := utils.GenerateJWTToken(strconv.FormatInt(user_id, 10))
+		token, err := utils.GenerateJWTToken(user_id)
 		if err != nil {
 			c.JSON(http.StatusOK, UserLoginResponse{
-				Response: Response{StatusCode: 1},
+				Response: Response{StatusCode: 1, StatusMsg: err.Error()},
 			})
 		} else {
 			c.JSON(http.StatusOK, UserLoginResponse{
@@ -113,33 +121,30 @@ func Login(c *gin.Context) {
 		}
 
 	}
-
-	//token := username + password
-	//
-	//if user, exist := usersLoginInfo[token]; exist {
-	//	c.JSON(http.StatusOK, UserLoginResponse{
-	//		Response: Response{StatusCode: 0},
-	//		UserId:   user.Id,
-	//		Token:    token,
-	//	})
-	//} else {
-	//	c.JSON(http.StatusOK, UserLoginResponse{
-	//		Response: Response{StatusCode: 1, StatusMsg: "User doesn't exist"},
-	//	})
-	//}
 }
 
-func UserInfo(c *gin.Context) {
-	token := c.Query("token")
-
-	if user, exist := usersLoginInfo[token]; exist {
+func UserInfo(c *gin.Context) { //查询别人，还没有已关注这个字段
+	id := c.Query("user_id")
+	user_id, _ := strconv.ParseInt(id, 10, 64)
+	user := dao.QueryById(user_id)
+	if user.Id == 0 {
 		c.JSON(http.StatusOK, UserResponse{
-			Response: Response{StatusCode: 0},
-			User:     user,
+			Response: Response{StatusCode: 1,
+				StatusMsg: "User doesn't exist",
+			},
 		})
-	} else {
-		c.JSON(http.StatusOK, UserResponse{
-			Response: Response{StatusCode: 1, StatusMsg: "User doesn't exist"},
-		})
+		return
 	}
+
+	c.JSON(http.StatusOK, UserResponse{
+		Response: Response{StatusCode: 0},
+		User: User{
+			Id:            user.Id,
+			Name:          user.Name,
+			FollowCount:   user.FollowCount,
+			FollowerCount: user.FollowerCount,
+			IsFollow:      false,
+		},
+	})
+
 }

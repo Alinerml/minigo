@@ -2,9 +2,13 @@ package controller
 
 import (
 	"fmt"
+	"github.com/RaymondCode/simple-demo/conf"
+	"github.com/RaymondCode/simple-demo/dao"
 	"github.com/RaymondCode/simple-demo/utils"
 	"github.com/gin-gonic/gin"
+	"github.com/golang-jwt/jwt"
 	"net/http"
+	"time"
 )
 
 type VideoListResponse struct {
@@ -15,13 +19,8 @@ type VideoListResponse struct {
 // Publish check token then save upload file to public directory
 func Publish(c *gin.Context) {
 	token := c.PostForm("token")
-
-	//if _, exist := usersLoginInfo[token]; !exist {
-	//	c.JSON(http.StatusOK, Response{StatusCode: 1, StatusMsg: "User doesn't exist"})
-	//	return
-	//}
-
 	data, err := c.FormFile("data") //获取文件
+	title := c.PostForm("title")
 	file, _ := data.Open()
 	if err != nil {
 		c.JSON(http.StatusOK, Response{
@@ -31,25 +30,38 @@ func Publish(c *gin.Context) {
 		return
 	}
 
-	user := usersLoginInfo[token]
-	finalName := fmt.Sprintf("video/%d_%s", user.Id, data.Filename)
+	token_p, _ := jwt.Parse(token, func(token *jwt.Token) (interface{}, error) {
+		return conf.SecretKey, nil
+	})
+	claims, _ := token_p.Claims.(jwt.MapClaims)
+	user_id := claims["sub"]                                                             //得到用户id
+	authid := int64(user_id.(float64))                                                   //todo:蜜汁操作
+	finalName := fmt.Sprintf("video/%d_%s_%d", authid, data.Filename, time.Now().Unix()) //保存格式为id_name
 	//saveFile := filepath.Join("./public/", finalName) //保存文件到服务器
 	code, res := utils.UploadToQiNiu(file, finalName, data.Size)
-	if code == 0 {
+	if code == 0 { //上传失败
 		c.JSON(http.StatusOK, Response{
 			StatusCode: 1,
 			StatusMsg:  res,
 		})
 		return
 	}
-	//if err := c.SaveUploadedFile(data, saveFile); err != nil {
-	//	c.JSON(http.StatusOK, Response{
-	//		StatusCode: 1,
-	//		StatusMsg:  err.Error(),
-	//	})
-	//	return
-	//}
 
+	//上传成功，向数据库插入数据
+	video := &dao.Video{
+		PlayUrl:    res,
+		AuthId:     authid,
+		CreateTime: time.Now().Unix(),
+		Title:      title,
+	}
+	err = dao.SaveVideo(video)
+	if err != nil {
+		c.JSON(http.StatusOK, Response{
+			StatusCode: 1,
+			StatusMsg:  err.Error(),
+		})
+		return
+	}
 	c.JSON(http.StatusOK, Response{
 		StatusCode: 0,
 		StatusMsg:  res,

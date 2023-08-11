@@ -3,22 +3,21 @@ package dao
 import (
 	"github.com/RaymondCode/simple-demo/utils"
 	"log"
-	"time"
 )
 
 type User struct {
-	ID              int64
-	UserName        string    `gorm:"column:user_name"`
-	Password        string    `gorm:"column:password"`
-	CreateTime      time.Time `gorm:"column:create_time"`
-	FollowCount     int       `gorm:"column:follow_count"`
-	FollowerCount   int       `gorm:"column:follower_count"`
-	Avatar          string    `gorm:"column:avatar"`
-	BackgroundImage string    `gorm:"column:background_image"`
-	Signature       string    `gorm:"column:signature"`
-	TotalFavorited  int       `gorm:"column:total_favorited"`
-	WorkCount       int       `gorm:"column:work_count"`
-	FavoriteCount   int       `gorm:"column:favorite_count"`
+	Id              int64
+	Name            string `gorm:"column:name"`
+	Password        string `gorm:"column:password"`
+	CreateTime      int64  `gorm:"column:create_time"`
+	FollowCount     int    `gorm:"column:follow_count"`
+	FollowerCount   int    `gorm:"column:follower_count"`
+	Avatar          string `gorm:"column:avatar"`
+	BackgroundImage string `gorm:"column:background_image"`
+	Signature       string `gorm:"column:signature"`
+	TotalFavorited  int    `gorm:"column:total_favorited"`
+	WorkCount       int    `gorm:"column:work_count"`
+	FavoriteCount   int    `gorm:"column:favorite_count"`
 }
 
 func (u User) TableName() string {
@@ -34,16 +33,26 @@ func SaveUser(user *User) error {
 	return err
 }
 
-func UserLogin(username string, password string) (int64, int) {
+func UserLogin(username string, password string) (int64, int, error) {
 	password = utils.Encode(password)
 	var u User
-	err := DB.Where("user_name=?", username).First(&u).Error
+	err := DB.Where("name=?", username).First(&u).Error
 	if err != nil {
 		log.Println("login error", err)
-		return 0, -1
+		return 0, -1, err //查询失败
 	}
 	if password != u.Password {
-		return 0, 0
+		return 0, 0, err //密码错误
 	}
-	return u.ID, 1
+	return u.Id, 1, err //成功
+}
+
+func QueryById(user_id int64) User {
+	var u User
+	err := DB.First(&u, user_id).Error
+	if err != nil {
+		log.Println("query error", err)
+		return u
+	}
+	return u
 }
