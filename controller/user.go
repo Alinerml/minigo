@@ -1,10 +1,10 @@
 package controller
 
 import (
-	"github.com/RaymondCode/simple-demo/dao"
-	"github.com/RaymondCode/simple-demo/utils"
 	"github.com/gin-gonic/gin"
 	"net/http"
+	"simple-demo/dao"
+	"simple-demo/utils"
 	"strconv"
 	"time"
 )

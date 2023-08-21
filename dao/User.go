@@ -1,8 +1,8 @@
 package dao
 
 import (
-	"github.com/RaymondCode/simple-demo/utils"
 	"log"
+	"simple-demo/utils"
 )
 
 type User struct {

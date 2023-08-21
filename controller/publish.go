@@ -2,12 +2,12 @@ package controller
 
 import (
 	"fmt"
-	"github.com/RaymondCode/simple-demo/conf"
-	"github.com/RaymondCode/simple-demo/dao"
-	"github.com/RaymondCode/simple-demo/utils"
 	"github.com/gin-gonic/gin"
 	"github.com/golang-jwt/jwt"
 	"net/http"
+	"simple-demo/conf"
+	"simple-demo/dao"
+	"simple-demo/utils"
 	"time"
 )
 

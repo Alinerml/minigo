@@ -1,9 +1,9 @@
 package main
 
 import (
-	"github.com/RaymondCode/simple-demo/controller"
-	"github.com/RaymondCode/simple-demo/utils"
 	"github.com/gin-gonic/gin"
+	"simple-demo/controller"
+	"simple-demo/utils"
 )
 
 func initRouter(r *gin.Engine) {

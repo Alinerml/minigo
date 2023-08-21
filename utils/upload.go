@@ -2,10 +2,10 @@ package utils
 
 import (
 	"context"
-	"github.com/RaymondCode/simple-demo/conf"
 	"github.com/qiniu/go-sdk/v7/auth/qbox"
 	"github.com/qiniu/go-sdk/v7/storage"
 	"mime/multipart"
+	"simple-demo/conf"
 )
 
 // 封装上传图片到七牛云然后返回状态和图片的url
@@ -32,6 +32,6 @@ func UploadToQiNiu(file multipart.File, finalname string, fileSize int64) (int, 
 		code := 0
 		return code, err.Error()
 	}
-	url := "http://" + ImgUrl + ret.Key
+	url := "http://" + ImgUrl + "/" + ret.Key
 	return 200, url
 }

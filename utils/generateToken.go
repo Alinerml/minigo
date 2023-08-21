@@ -1,8 +1,8 @@
 package utils
 
 import (
-	"github.com/RaymondCode/simple-demo/conf"
 	"github.com/golang-jwt/jwt"
+	"simple-demo/conf"
 	"time"
 )
 

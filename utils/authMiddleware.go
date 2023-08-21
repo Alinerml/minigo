@@ -1,10 +1,10 @@
 package utils
 
 import (
-	"github.com/RaymondCode/simple-demo/conf"
 	"github.com/gin-gonic/gin"
 	"github.com/golang-jwt/jwt"
 	"net/http"
+	"simple-demo/conf"
 )
 
 func AuthMiddleware() gin.HandlerFunc {

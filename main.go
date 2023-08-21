@@ -2,8 +2,8 @@ package main
 
 import (
 	"fmt"
-	"github.com/RaymondCode/simple-demo/service"
 	"github.com/gin-gonic/gin"
+	"simple-demo/service"
 	"time"
 )
 
