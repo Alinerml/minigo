@@ -2,7 +2,9 @@ package controller
 
 import (
 	"github.com/gin-gonic/gin"
+	"github.com/golang-jwt/jwt"
 	"net/http"
+	"simple-demo/conf"
 	"simple-demo/dao"
 	"simple-demo/utils"
 	"strconv"
@@ -35,7 +37,7 @@ type UserResponse struct {
 	User User `json:"user"`
 }
 
-func Register(c *gin.Context) {
+func Register(c *gin.Context) { //注册
 	username := c.Query("username")
 	password := c.Query("password")
 	if username == "" || password == "" {
@@ -72,29 +74,9 @@ func Register(c *gin.Context) {
 			Token:    token,
 		})
 	}
-
-	//token := username + password
-	//
-	//if _, exist := usersLoginInfo[token]; exist {
-	//	c.JSON(http.StatusOK, UserLoginResponse{
-	//		Response: Response{StatusCode: 1, StatusMsg: "User already exist"},
-	//	})
-	//} else {
-	//	atomic.AddInt64(&userIdSequence, 1)
-	//	newUser := User{
-	//		Id:   userIdSequence,
-	//		Name: username,
-	//	}
-	//	usersLoginInfo[token] = newUser
-	//	c.JSON(http.StatusOK, UserLoginResponse{
-	//		Response: Response{StatusCode: 0},
-	//		UserId:   userIdSequence,
-	//		Token:    username + password,
-	//	})
-	//}
 }
 
-func Login(c *gin.Context) {
+func Login(c *gin.Context) { //登录
 	username := c.Query("username")
 	password := c.Query("password")
 
@@ -114,7 +96,7 @@ func Login(c *gin.Context) {
 			})
 		} else {
 			c.JSON(http.StatusOK, UserLoginResponse{
-				Response: Response{StatusCode: 0},
+				Response: Response{StatusCode: 0, StatusMsg: "登录成功"},
 				UserId:   user_id,
 				Token:    token,
 			})
@@ -123,10 +105,26 @@ func Login(c *gin.Context) {
 	}
 }
 
-func UserInfo(c *gin.Context) { //查询别人，还没有已关注这个字段
+func UserInfo(c *gin.Context) { //查询别人
+	token := c.Query("token")
+
+	if token == "" {
+		c.JSON(http.StatusOK, Response{
+			-1,
+			"未登录",
+		})
+		return
+	}
+	token_p, _ := jwt.Parse(token, func(token *jwt.Token) (interface{}, error) {
+		return conf.SecretKey, nil
+	})
+	claims, _ := token_p.Claims.(jwt.MapClaims)
+	auth_id := claims["sub"] //得到用户id
+	authid := int64(auth_id.(float64))
 	id := c.Query("user_id")
 	user_id, _ := strconv.ParseInt(id, 10, 64)
-	user := dao.QueryById(user_id)
+	user := dao.QueryUserById(user_id)
+	isfollow := dao.IsFollow(authid, user_id)
 	if user.Id == 0 {
 		c.JSON(http.StatusOK, UserResponse{
 			Response: Response{StatusCode: 1,
@@ -139,11 +137,17 @@ func UserInfo(c *gin.Context) { //查询别人，还没有已关注这个字段
 	c.JSON(http.StatusOK, UserResponse{
 		Response: Response{StatusCode: 0},
 		User: User{
-			Id:            user.Id,
-			Name:          user.Name,
-			FollowCount:   user.FollowCount,
-			FollowerCount: user.FollowerCount,
-			IsFollow:      false,
+			Id:              user.Id,
+			Name:            user.Name,
+			FollowCount:     user.FollowCount,
+			FollowerCount:   user.FollowerCount,
+			IsFollow:        isfollow,
+			Avatar:          user.Avatar,
+			BackgroundImage: user.BackgroundImage,
+			Signature:       user.Signature,
+			TotalFavorited:  user.TotalFavorited,
+			WorkCount:       user.WorkCount,
+			FavoriteCount:   user.FavoriteCount,
 		},
 	})
 

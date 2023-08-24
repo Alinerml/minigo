@@ -47,7 +47,7 @@ func UserLogin(username string, password string) (int64, int, error) {
 	return u.Id, 1, err //成功
 }
 
-func QueryById(user_id int64) User {
+func QueryUserById(user_id int64) User {
 	var u User
 	err := DB.First(&u, user_id).Error
 	if err != nil {
