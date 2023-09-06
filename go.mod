@@ -1,4 +1,4 @@
-module simple-demo
+module minigo
 
 go 1.17
 

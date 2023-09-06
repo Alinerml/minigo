@@ -3,7 +3,7 @@ package main
 import (
 	"fmt"
 	"github.com/gin-gonic/gin"
-	"simple-demo/service"
+	"minigo/service"
 	"time"
 )
 

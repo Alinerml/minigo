@@ -2,8 +2,8 @@ package main
 
 import (
 	"github.com/gin-gonic/gin"
-	"simple-demo/controller"
-	"simple-demo/utils"
+	"minigo/controller"
+	"minigo/utils"
 )
 
 func initRouter(r *gin.Engine) {

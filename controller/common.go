@@ -13,6 +13,7 @@ type Video struct {
 	FavoriteCount int    `json:"favorite_count,omitempty"`
 	CommentCount  int    `json:"comment_count,omitempty"`
 	IsFavorite    bool   `json:"is_favorite,omitempty"`
+	Title         string `json:"title"`
 }
 
 type Comment struct {
@@ -28,7 +29,7 @@ type User struct {
 	FollowCount     int    `json:"follow_count,omitempty"`
 	FollowerCount   int    `json:"follower_count,omitempty"`
 	IsFollow        bool   `json:"is_follow,omitempty"`
-	Avatar          string
+	Avatar          string `json:"avatar,omitempty"`
 	BackgroundImage string `json:"background_image"`
 	Signature       string `json:"signature"`
 	TotalFavorited  int    `json:"total_favorited"`
@@ -39,7 +40,9 @@ type User struct {
 type Message struct {
 	Id         int64  `json:"id,omitempty"`
 	Content    string `json:"content,omitempty"`
-	CreateTime string `json:"create_time,omitempty"`
+	CreateTime int64  `json:"create_time,omitempty"`
+	ToUserId   int64  `json:"to_user_id"`
+	FromUserId int64  `json:"from_user_id"`
 }
 
 type MessageSendEvent struct {

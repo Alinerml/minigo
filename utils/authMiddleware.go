@@ -3,8 +3,8 @@ package utils
 import (
 	"github.com/gin-gonic/gin"
 	"github.com/golang-jwt/jwt"
+	"minigo/conf"
 	"net/http"
-	"simple-demo/conf"
 )
 
 func AuthMiddleware() gin.HandlerFunc {
@@ -14,7 +14,10 @@ func AuthMiddleware() gin.HandlerFunc {
 			tokenString = c.PostForm("token") //获取表单中的数据
 		}
 		if tokenString == "" {
-			c.JSON(http.StatusUnauthorized, gin.H{"error": "Unauthorized"})
+			c.JSON(http.StatusOK, gin.H{
+				"status_code": -1,
+				"status_msg":  "Unauthorized",
+			})
 			c.Abort()
 			return
 		}
@@ -24,7 +27,10 @@ func AuthMiddleware() gin.HandlerFunc {
 		})
 
 		if err != nil || !token.Valid {
-			c.JSON(http.StatusUnauthorized, gin.H{"error": "Unauthorized"})
+			c.JSON(http.StatusOK, gin.H{
+				"status_code": -1,
+				"status_msg":  "Unauthorized",
+			})
 			c.Abort()
 			return
 		}

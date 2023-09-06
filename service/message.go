@@ -4,8 +4,8 @@ import (
 	"encoding/json"
 	"fmt"
 	"io"
+	"minigo/controller"
 	"net"
-	"simple-demo/controller"
 	"sync"
 )
 

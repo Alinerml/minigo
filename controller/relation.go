@@ -3,9 +3,9 @@ package controller
 import (
 	"github.com/gin-gonic/gin"
 	"github.com/golang-jwt/jwt"
+	"minigo/conf"
+	"minigo/dao"
 	"net/http"
-	"simple-demo/conf"
-	"simple-demo/dao"
 	"strconv"
 )
 
@@ -45,7 +45,7 @@ func RelationAction(c *gin.Context) { //关注操作
 			},
 			)
 		}
-	} else {
+	} else { //取消关注
 		err := dao.CancleFollow(follow_id, follower_id)
 		if err != nil {
 			c.JSON(http.StatusOK, Response{
@@ -66,12 +66,6 @@ func RelationAction(c *gin.Context) { //关注操作
 
 // FollowList all users have same follow list
 func FollowList(c *gin.Context) { //关注列表
-	c.JSON(http.StatusOK, UserListResponse{
-		Response: Response{
-			StatusCode: 0,
-		},
-		UserList: []User{DemoUser},
-	})
 	user_id, _ := strconv.ParseInt(c.Query("user_id"), 10, 64)
 	err, follow_list := dao.QueryFollowByUserId(user_id)
 	if err != nil {
@@ -83,7 +77,7 @@ func FollowList(c *gin.Context) { //关注列表
 	}
 	follow_res := make([]User, len(follow_list))
 
-	for i, source := range follow_res {
+	for i, source := range follow_list {
 
 		follow_res[i] = User{
 			Id:              source.Id,
@@ -122,7 +116,7 @@ func FollowerList(c *gin.Context) { //粉丝列表
 	}
 	follower_res := make([]User, len(follower_list))
 
-	for i, source := range follower_res {
+	for i, source := range follower_list {
 		isfollow := dao.IsFollow(user_id, source.Id)
 		follower_res[i] = User{
 			Id:              source.Id,
@@ -147,11 +141,37 @@ func FollowerList(c *gin.Context) { //粉丝列表
 }
 
 // FriendList all users have same friend list
-func FriendList(c *gin.Context) {
+func FriendList(c *gin.Context) { //朋友列表
+	user_id, _ := strconv.ParseInt(c.Query("user_id"), 10, 64)
+	err, friend_list := dao.QueryFriendByUserId(user_id) //查找朋友
+	if err != nil {
+		c.JSON(http.StatusOK, Response{
+			StatusCode: -1,
+			StatusMsg:  err.Error(),
+		})
+		return
+	}
+	friend_res := make([]User, len(friend_list))
+
+	for i, source := range friend_list {
+		friend_res[i] = User{
+			Id:              source.Id,
+			Name:            source.Name,
+			FollowCount:     source.FollowCount,
+			FollowerCount:   source.FollowerCount,
+			IsFollow:        true,
+			Avatar:          source.Avatar,
+			BackgroundImage: source.BackgroundImage,
+			Signature:       source.Signature,
+			TotalFavorited:  source.TotalFavorited,
+			WorkCount:       source.WorkCount,
+			FavoriteCount:   source.FavoriteCount,
+		}
+	}
 	c.JSON(http.StatusOK, UserListResponse{
 		Response: Response{
 			StatusCode: 0,
 		},
-		UserList: []User{DemoUser},
+		UserList: friend_res,
 	})
 }

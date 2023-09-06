@@ -3,28 +3,13 @@ package controller
 import (
 	"github.com/gin-gonic/gin"
 	"github.com/golang-jwt/jwt"
+	"minigo/conf"
+	"minigo/dao"
+	"minigo/utils"
 	"net/http"
-	"simple-demo/conf"
-	"simple-demo/dao"
-	"simple-demo/utils"
 	"strconv"
 	"time"
 )
-
-// usersLoginInfo use map to store user info, and key is username+password for demo
-// user data will be cleared every time the server starts
-// test data: username=zhanglei, password=douyin
-var usersLoginInfo = map[string]User{
-	"zhangleidouyin": {
-		Id:            1,
-		Name:          "zhanglei",
-		FollowCount:   10,
-		FollowerCount: 5,
-		IsFollow:      true,
-	},
-}
-
-var userIdSequence = int64(1)
 
 type UserLoginResponse struct { //首字母必须大写才能反射，解析json
 	Response
@@ -50,9 +35,12 @@ func Register(c *gin.Context) { //注册
 	//密码加密存储
 	password = utils.Encode(password)
 	user := &dao.User{
-		Name:       username,
-		Password:   password,
-		CreateTime: time.Now().Unix(),
+		Name:            username,
+		Password:        password,
+		Avatar:          "http://s0ce3vuua.bkt.clouddn.com/photo/20230905140635.jpg",
+		BackgroundImage: "http://s0ce3vuua.bkt.clouddn.com/photo/20230905140059.jpg",
+		Signature:       "这是一个固定的个性签名",
+		CreateTime:      time.Now().Unix(),
 	}
 	err := dao.SaveUser(user)
 	if err != nil {

@@ -2,7 +2,7 @@ package utils
 
 import (
 	"github.com/golang-jwt/jwt"
-	"simple-demo/conf"
+	"minigo/conf"
 	"time"
 )
 

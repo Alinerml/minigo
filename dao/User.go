@@ -2,7 +2,7 @@ package dao
 
 import (
 	"log"
-	"simple-demo/utils"
+	"minigo/utils"
 )
 
 type User struct {

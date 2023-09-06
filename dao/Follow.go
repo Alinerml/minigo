@@ -53,7 +53,7 @@ func Addfollow(follower_id int64, follow_id int64) error {
 	return err
 }
 
-func IsFollow(follower_id int64, follow_id int64) bool {
+func IsFollow(follower_id int64, follow_id int64) bool { //参数1是否关注参数2
 	var follow Follow
 	if err := DB.Where("follower_id=?", follower_id).Where("follow_id=?", follow_id).First(&follow).Error; err == gorm.ErrRecordNotFound { //判断是否已经有记录
 		return false
@@ -63,7 +63,7 @@ func IsFollow(follower_id int64, follow_id int64) bool {
 
 func CancleFollow(follower_id int64, follow_id int64) error {
 	var follow Follow
-	result := DB.Where("follower_id = ?", follow_id).Where("follow_id = ?", follow_id).First(&follow)
+	result := DB.Where("follower_id = ?", follower_id).Where("follow_id = ?", follow_id).First(&follow)
 	if result.Error == gorm.ErrRecordNotFound {
 		log.Println("no record", result.Error)
 		return result.Error
@@ -77,7 +77,7 @@ func CancleFollow(follower_id int64, follow_id int64) error {
 	//修改用户信息
 	var follower User
 	DB.First(&follower, follower_id)
-	follower.FollowCount++
+	follower.FollowCount--
 	err := DB.Save(&follower).Error
 	if err != nil {
 		log.Println("update user error", err)
@@ -85,7 +85,7 @@ func CancleFollow(follower_id int64, follow_id int64) error {
 	}
 	var followw User //被关注的
 	DB.First(&followw, follow_id)
-	followw.FollowerCount++
+	followw.FollowerCount--
 	err = DB.Save(&followw).Error
 	if err != nil {
 		log.Println("update user error", err)
@@ -118,8 +118,27 @@ func QueryFollowerByUserId(user_id int64) (error, []User) { //粉丝列表
 		return result.Error, follower_list
 	}
 	//再根据id查用户
-	for _, user_id := range followers {
-		follower_list = append(follower_list, QueryUserById(user_id))
+	for _, userId := range followers {
+		follower_list = append(follower_list, QueryUserById(userId))
 	}
 	return result.Error, follower_list
+}
+
+func QueryFriendByUserId(user_id int64) (error, []User) { //朋友列表
+	var friend_list []User
+	//先查所有关注的id
+	var follows []int64
+	result := DB.Model(&Follow{}).Where("follower_id = ?", user_id).Pluck("follow_id", &follows) //检索出关注列表
+	if result.Error != nil {
+		return result.Error, friend_list
+	}
+	//再根据id查用户
+	for _, userId := range follows {
+		//判断对方是否关注你
+		isFollow := IsFollow(userId, user_id)
+		if isFollow {
+			friend_list = append(friend_list, QueryUserById(userId))
+		}
+	}
+	return result.Error, friend_list
 }

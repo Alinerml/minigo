@@ -3,9 +3,9 @@ package controller
 import (
 	"github.com/gin-gonic/gin"
 	"github.com/golang-jwt/jwt"
+	"minigo/conf"
+	"minigo/dao"
 	"net/http"
-	"simple-demo/conf"
-	"simple-demo/dao"
 	"strconv"
 )
 
@@ -94,10 +94,11 @@ func FavoriteList(c *gin.Context) { //喜欢列表
 				FavoriteCount:   user.FavoriteCount,
 			},
 			PlayUrl:       source.PlayUrl,
-			CoverUrl:      "http://rz2cue1gw.bkt.clouddn.com/photo/123%202023-08-11%20184530.png",
+			CoverUrl:      source.CoverUrl,
 			FavoriteCount: source.FavoriteCount,
 			CommentCount:  source.CommentCount,
 			IsFavorite:    true,
+			Title:         source.Title,
 		}
 	}
 	c.JSON(http.StatusOK, VideoListResponse{

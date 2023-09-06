@@ -3,9 +3,9 @@ package controller
 import (
 	"github.com/gin-gonic/gin"
 	"github.com/golang-jwt/jwt"
+	"minigo/conf"
+	"minigo/dao"
 	"net/http"
-	"simple-demo/conf"
-	"simple-demo/dao"
 	"strconv"
 	"time"
 )
@@ -54,10 +54,11 @@ func Feed(c *gin.Context) { //首页查询视频
 					FavoriteCount:   user.FavoriteCount,
 				},
 				PlayUrl:       source.PlayUrl,
-				CoverUrl:      "http://rz2cue1gw.bkt.clouddn.com/photo/123%202023-08-11%20184530.png",
+				CoverUrl:      source.CoverUrl,
 				FavoriteCount: source.FavoriteCount,
 				CommentCount:  source.CommentCount,
 				IsFavorite:    islike,
+				Title:         source.Title,
 			}
 		}
 		c.JSON(http.StatusOK, FeedResponse{
@@ -91,10 +92,11 @@ func Feed(c *gin.Context) { //首页查询视频
 					FavoriteCount:   user.FavoriteCount,
 				},
 				PlayUrl:       source.PlayUrl,
-				CoverUrl:      "http://rz2cue1gw.bkt.clouddn.com/photo/123%202023-08-11%20184530.png",
+				CoverUrl:      source.CoverUrl,
 				FavoriteCount: source.FavoriteCount,
 				CommentCount:  source.CommentCount,
 				IsFavorite:    false,
+				Title:         source.Title,
 			}
 		}
 		c.JSON(http.StatusOK, FeedResponse{

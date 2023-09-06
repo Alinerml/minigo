@@ -4,11 +4,12 @@ import (
 	"fmt"
 	"github.com/gin-gonic/gin"
 	"github.com/golang-jwt/jwt"
+	"minigo/conf"
+	"minigo/dao"
+	"minigo/utils"
 	"net/http"
-	"simple-demo/conf"
-	"simple-demo/dao"
-	"simple-demo/utils"
 	"strconv"
+	"strings"
 	"time"
 )
 
@@ -22,49 +23,34 @@ func Publish(c *gin.Context) { //发布视频
 	token := c.PostForm("token")
 	data, err := c.FormFile("data") //获取文件
 	title := c.PostForm("title")
-	file, _ := data.Open()
-	if err != nil {
+	//判断视频数据是否合法
+	filename := data.Filename //获取文件名
+	index := strings.LastIndex(filename, ".")
+	if index < 0 {
 		c.JSON(http.StatusOK, Response{
 			StatusCode: 1,
-			StatusMsg:  err.Error(),
+			StatusMsg:  "没有获取到后缀名",
 		})
 		return
 	}
-	//提取封面
-
-	//vc, err := gocv.VideoCaptureFile(filePath)
-	//if err != nil {
-	//	return
-	//}
-	//
-	//frames := vc.Get(gocv.VideoCaptureFrameCount)
-	//fps := vc.Get(gocv.VideoCaptureFPS)
-	//duration := frames / fps
-	//
-	//frames = (time / duration) * frames
-	//
-	//// Set Video frames
-	//vc.Set(gocv.VideoCapturePosFrames, frames)
-	//
-	//img := gocv.NewMat()
-	//
-	//vc.Read(&img)
-	//
-	//imageObject, err := img.ToImage()
-	//if err != nil {
-	//	return i, err
-	//}
-
-	//
+	fileType := filename[index+1 : len(filename)]
+	fileType = strings.ToLower(fileType)
+	if fileType != "mp4" {
+		c.JSON(http.StatusOK, Response{
+			StatusCode: 1,
+			StatusMsg:  "视频格式错误",
+		})
+		return
+	}
 	token_p, _ := jwt.Parse(token, func(token *jwt.Token) (interface{}, error) {
 		return conf.SecretKey, nil
 	})
 	claims, _ := token_p.Claims.(jwt.MapClaims)
-	user_id := claims["sub"]                                                             //得到用户id
-	authid := int64(user_id.(float64))                                                   //todo:蜜汁操作
-	finalName := fmt.Sprintf("video/%d_%s_%d", authid, data.Filename, time.Now().Unix()) //保存格式为id_name
+	user_id := claims["sub"]                                                                  //得到用户id
+	authid := int64(user_id.(float64))                                                        //todo:蜜汁操作
+	finalName := fmt.Sprintf("%d_%d_%s", authid, time.Now().Unix(), data.Filename[0:index+1]) //保存格式为id_name
 	//saveFile := filepath.Join("./public/", finalName) //保存文件到服务器
-	code, res := utils.UploadToQiNiu(file, finalName, data.Size)
+	code, res, coverurl := utils.UploadToQiNiu(data, finalName, data.Size)
 	if code == 0 { //上传失败
 		c.JSON(http.StatusOK, Response{
 			StatusCode: 1,
@@ -76,6 +62,7 @@ func Publish(c *gin.Context) { //发布视频
 	//上传成功，向数据库插入数据
 	video := &dao.Video{
 		PlayUrl:    res,
+		CoverUrl:   coverurl,
 		AuthId:     authid,
 		CreateTime: time.Now().Unix(),
 		Title:      title,
@@ -136,10 +123,11 @@ func PublishList(c *gin.Context) { //发布列表
 				FavoriteCount:   user.FavoriteCount,
 			},
 			PlayUrl:       source.PlayUrl,
-			CoverUrl:      "http://rz2cue1gw.bkt.clouddn.com/photo/123%202023-08-11%20184530.png",
+			CoverUrl:      source.CoverUrl,
 			FavoriteCount: source.FavoriteCount,
 			CommentCount:  source.CommentCount,
 			IsFavorite:    islike,
+			Title:         source.Title,
 		}
 	}
 	c.JSON(http.StatusOK, VideoListResponse{
